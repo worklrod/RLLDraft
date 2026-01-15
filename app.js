@@ -13,7 +13,39 @@
   const totalCountEl = document.getElementById('totalCount');
   const availableCountEl = document.getElementById('availableCount');
   const messageEl = document.getElementById('message');
+  document.getElementById('showDraftBtn').addEventListener('click', function() {
+    const playerInput = document.getElementById('namesInput').value;
+    const coachInput = document.getElementById('coachesInput').value;
+    const draftDiv = document.getElementById('draftOrderList');
 
+    // Parse names
+    const parseNames = str => str
+        .split(/[\n,;]+/)
+        .map(s => s.trim())
+        .filter(Boolean);
+
+    const players = parseNames(playerInput);
+    const coaches = parseNames(coachInput);
+
+    if (players.length === 0 || coaches.length === 0) {
+        draftDiv.innerHTML = '<span style="color:red;">Please enter both player and coach names.</span>';
+        return;
+    }
+
+    // Snake draft logic
+    let html = '<h3>Draft Order</h3><ol>';
+    const numCoaches = coaches.length;
+    players.forEach((player, pickNum) => {
+        const roundNum = Math.floor(pickNum / numCoaches);
+        const indexInRound = pickNum % numCoaches;
+        const coach = (roundNum % 2 === 0)
+            ? coaches[indexInRound]
+            : coaches.slice().reverse()[indexInRound];
+        html += `<li>Pick ${pickNum + 1}: <strong>${coach}</strong> selects <strong>${player}</strong></li>`;
+    });
+    html += '</ol>';
+    draftDiv.innerHTML = html;
+});
   let players = []; // { name: string, available: boolean }
 
   function parseNames(input) {

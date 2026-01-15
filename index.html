@@ -30,6 +30,17 @@
 
         <label for="namesInput" class="small">Paste player names (one per line or separated by commas/semicolons):</label>
         <textarea id="namesInput" placeholder="e.g. John Smith&#10;Amy Lee&#10;Mark Johnson"></textarea>
+        <!-- Add this below the player names textarea -->
+        <label for="coachesInput" class="small">Paste coach names (one per line or separated by commas/semicolons):</label>
+        <textarea id="coachesInput" placeholder="e.g. Coach A&#10;Coach B&#10;Coach C"></textarea>
+
+        <!-- Add this button to controls -->
+        <button id="showDraftBtn">Show Draft Order</button>
+
+        <!-- Add this div below playersList to display draft order -->
+        <div id="draftOrderList" style="margin-top:24px;"></div>
+
+        <script src="app.js"></script>
 
         <div class="controls">
             <button id="loadBtn">Load players</button>
