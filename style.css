@@ -9,7 +9,7 @@ html, body{
     font-size: 1.75vw;
   }
   
-  bigDiv{
+  .bigDiv{
     height: 5000vw;
     float: left;
   }

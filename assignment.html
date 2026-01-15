@@ -46,12 +46,15 @@
 
         <script src="app.js"></script>
 
+        <label for="coachesInput" class="small">Paste coach names (one per line or separated by commas/semicolons):</label>
+        <textarea id="coachesInput" placeholder="e.g. Coach Smith&#10;Coach Lee&#10;Coach Johnson"></textarea>
+
         <div class="controls">
             <button id="loadBtn">Load players</button>
+            <button id="loadCoachesBtn">Load coaches</button>
             <button id="clearBtn">Clear</button>
-            <button id="markAllBtn">Mark all available</button>
-            <button id="unmarkAllBtn">Unmark all</button>
-            <button id="exportBtn">Export available</button>
+            <button id="startDraftBtn">Start Draft</button>
+            <button id="nextPickBtn">Next Pick</button>
             <label style="display:flex;align-items:center;gap:6px;">
             <input type="checkbox" id="showAvailableOnly" />
             <span class="small">Show available only</span>
@@ -61,12 +64,15 @@
         <div class="toolbar">
             <div class="small">Players loaded: <strong id="totalCount">0</strong></div>
             <div class="small">Available: <strong id="availableCount">0</strong></div>
+            <div class="small">Current Coach: <strong id="currentCoach">None</strong></div>
             <div class="counts" id="message" aria-live="polite"></div>
         </div>
 
         <div id="playersList" aria-live="polite"></div>
 
-        <p class="hint">Tip: You can paste names separated by newlines, commas, or semicolons. Use "Export available" to copy available player names to your clipboard.</p>
+        <div id="rosters" style="margin-top:20px;"></div>
+
+        <p class="hint">Tip: Load players and coaches, then start the draft. Click "Draft" next to a player to assign to the current coach.</p>
 
         <script src="app.js"></script>
 
