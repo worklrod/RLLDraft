@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>RLL — Random Starter</title>
+    <style>
+        body{ margin:0;font-family:Inter, system-ui, "Segoe UI", Roboto, Arial;background:#071126;color:#fff;padding:28px;}
+        .card{ max-width:900px;margin:0 auto;background:rgba(255,255,255,0.03);padding:18px;border-radius:10px;box-shadow:0 6px 30px rgba(0,0,0,0.5);}
+        h1{ margin:0 0 12px 0;font-size:1.1rem;letter-spacing:.12em;text-transform:uppercase;text-align:center;}
+        label{ display:block;margin:8px 0 6px 0;font-weight:600;color:rgba(255,255,255,0.95);}
+        textarea{ width:100%;min-height:120px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.05);background:transparent;color:#fff;resize:vertical;}
+        .controls{ display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap;}
+        button{ padding:8px 12px;border-radius:8px;border:0;cursor:pointer;font-weight:600;}
+        .btn-primary{ background:#1f8ef1;color:#fff;}
+        .btn-accent{ background:#22c55e;color:#fff;}
+        .status{ margin-left:8px;font-weight:700;}
+        ol{ margin:12px 0 0 1.2rem;padding:10px;background:rgba(255,255,255,0.02);border-radius:8px;list-style:decimal;}
+        li{ padding:8px 10px;border-radius:6px;margin-bottom:6px;transition:transform .14s,box-shadow .14s;}
+        li.starter{ background:linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));font-weight:700;box-shadow:0 10px 28px rgba(0,0,0,0.6);transform:translateY(-4px);}
+    </style>
+</head>
+<body>
+    <div class="card" role="region" aria-labelledby="title">
+        <h1 id="title">Randomize Draft Starter</h1>
+
+        <label for="coaches">Coaches (one per line)</label>
+        <textarea id="coaches" placeholder="Coach A&#10;Coach B&#10;Coach C">Coach A
+Coach B
+Coach C
+Coach D</textarea>
+
+        <div class="controls">
+            <button id="randomize" class="btn-primary" type="button">Randomize Starter</button>
+            <button id="animate" class="btn-accent" type="button">Animate Reveal</button>
+            <button id="openIndex" style="background:#ffb86b;color:#000;border-radius:8px;padding:8px 10px;">Open index.html</button>
+            <div id="status" class="status" aria-live="polite"></div>
+        </div>
+
+        <ol id="order" aria-live="polite" aria-label="Draft order"></ol>
+    </div>
+
+    <script>
+        // localStorage key used to share selection with index.html
+        const STORAGE_KEY = 'rll.starter';
+
+        function parseCoaches() {
+            return (document.getElementById('coaches').value || '')
+                .split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+        }
+
+        function rotateArray(arr, startIdx) {
+            return arr.slice(startIdx).concat(arr.slice(0, startIdx));
+        }
+
+        function chooseRandomStarter(arr) {
+            if (!arr.length) return null;
+            const idx = Math.floor(Math.random() * arr.length);
+            return { startIndex: idx, order: rotateArray(arr, idx) };
+        }
+
+        function renderOrder(order) {
+            const ol = document.getElementById('order');
+            ol.innerHTML = '';
+            order.forEach((name, i) => {
+                const li = document.createElement('li');
+                li.textContent = name;
+                if (i === 0) li.classList.add('starter');
+                ol.appendChild(li);
+            });
+        }
+
+        // write the result to localStorage so index.html can read it
+        function saveResultToStorage(result) {
+            if (!result) return;
+            const payload = {
+                timestamp: Date.now(),
+                startIndex: result.startIndex,
+                order: result.order
+            };
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+                document.getElementById('status').textContent = 'Saved — Starter: ' + result.order[0];
+            } catch (e) {
+                document.getElementById('status').textContent = 'Save failed (storage)';
+            }
+        }
+
+        function applyResult(result) {
+            if (!result) {
+                document.getElementById('status').textContent = '';
+                return;
+            }
+            renderOrder(result.order);
+            saveResultToStorage(result);
+        }
+
+        // simple animation that cycles highlights and lands on starter (index 0)
+        function animateReveal() {
+            const ol = document.getElementById('order');
+            const items = Array.from(ol.children);
+            if (!items.length) return;
+            const n = items.length;
+            const cycles = Math.floor(Math.random() * 4) + 3;
+            const total = cycles * n;
+            let step = 0;
+            let delay = 70;
+
+            items.forEach(it => { it.style.boxShadow = ''; it.style.transform = ''; it.classList.remove('starter'); });
+
+            function tick() {
+                const idx = step % n;
+                items.forEach(it => { it.style.boxShadow=''; it.style.transform=''; });
+                const el = items[idx];
+                if (el) {
+                    el.style.boxShadow = '0 6px 18px rgba(0,0,0,0.45)';
+                    el.style.transform = 'translateY(-4px)';
+                }
+                step++;
+                if (step <= total) {
+                    if (step > total - 10) delay += 40;
+                    setTimeout(tick, delay);
+                } else {
+                    items.forEach(it => { it.style.boxShadow=''; it.style.transform=''; });
+                    if (items[0]) {
+                        items[0].classList.add('starter');
+                        items[0].style.boxShadow = '0 10px 28px rgba(0,0,0,0.6)';
+                        items[0].style.transform = 'translateY(-6px)';
+                        document.getElementById('status').textContent = 'Starter: ' + items[0].textContent + ' (saved)';
+                    }
+                }
+            }
+            tick();
+        }
+
+        document.getElementById('randomize').addEventListener('click', () => {
+            const coaches = parseCoaches();
+            if (!coaches.length) { alert('Add at least one coach.'); return; }
+            const res = chooseRandomStarter(coaches);
+            applyResult(res);
+        });
+
+        document.getElementById('animate').addEventListener('click', () => {
+            const ol = document.getElementById('order');
+            if (!ol.children.length) {
+                const coaches = parseCoaches();
+                if (!coaches.length) { alert('Add at least one coach.'); return; }
+                applyResult(chooseRandomStarter(coaches));
+            }
+            animateReveal();
+        });
+
+        // open index.html so the user can view the main page; index should read localStorage to pick up the starter
+        document.getElementById('openIndex').addEventListener('click', () => {
+            window.open('index.html', '_blank');
+        });
+
+        // on load: if saved starter exists, load it into the list
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) {
+                    const saved = JSON.parse(raw);
+                    if (saved && Array.isArray(saved.order)) {
+                        document.getElementById('coaches').value = saved.order.join('\n'); // show rotated order
+                        renderOrder(saved.order);
+                        document.getElementById('status').textContent = 'Loaded saved starter: ' + saved.order[0];
+                        return;
+                    }
+                }
+            } catch (e) { /* ignore parse errors */ }
+
+            // otherwise, optionally auto-randomize once on load
+            // const coaches = parseCoaches();
+            // if (coaches.length) applyResult(chooseRandomStarter(coaches));
+        });
+    </script>
+</body>
+</html>
